@@ -7,6 +7,7 @@ export default class HandGestureController {
     #service
     #camera
     #continues = false
+    #continues2 = false
     #lastDirection = {
         direction: '',
         y: 0
@@ -39,10 +40,21 @@ export default class HandGestureController {
     async #estimateHands() {
         try {
             const hands = await this.#service.estimateHands(this.#camera.video)
+            this.#view.clearCanvas()
+            if (hands?.length) this.#view.drawResults(hands)
             for await (const { event, x, y } of this.#service.detectGestures(hands)) {
+                if (event === 'click') {
+                    setTimeout(() => {
+                        this.#continues2 = true
+                    }, 200)
+                    if (!this.#continues2) continue;
+                    this.#view.clickOnElement(x, y)
+                    this.#continues2 = false
+                    continue;
+                }
                 if (event.includes('scroll')) {
                     setTimeout(() => {
-                       this.#continues = true
+                        this.#continues = true
                     }, 200)
                     if (!this.#continues) continue;
                     this.#scrollPage(event)
